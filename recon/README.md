@@ -1,6 +1,6 @@
 # recon
 
-Evidence behind the numbers in `../see.md`. Reads BSC mainnet over public RPC, no keys.
+Evidence behind the numbers in the README. Reads BSC mainnet over public RPC, no keys.
 
 ```bash
 python3 audit.py      # samples 300 random agents: dedup, endpoints, reputation, categories
