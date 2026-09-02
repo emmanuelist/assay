@@ -77,36 +77,54 @@ export const CAPTION_RUNTIME = `
 (cues => {
   const wrap = document.createElement('div');
   wrap.id = '__cap';
-  wrap.innerHTML = '<div class="__cap-in"><span class="__cap-t"></span></div>';
+  wrap.innerHTML =
+    '<div class="__cap-in"><span class="__cap-t"></span><span class="__cap-r"></span></div>';
   const fl = document.createElement('link');
   fl.rel='stylesheet';
-  fl.href='https://fonts.googleapis.com/css2?family=Geist:wght@400;450;500&display=swap';
+  fl.href='https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap';
   document.head.appendChild(fl);
   const css = document.createElement('style');
   css.textContent = \`
-    /* Assay is a full-width document, so captions sit centred at the foot of
-       the frame over a scrim, rather than tucked beside a column. The scrim is
-       what stops a caption competing with the ledger rows behind it. */
+    /* Cinematic lower third.
+       The first version was a bordered, blurred box — which reads as a browser
+       tooltip sitting on top of a screenshot, not as a film. A caption belongs
+       IN the frame: a deep scrim that lifts type off whatever is behind it, no
+       hard container, and one accent rule that carries the beat. */
     #__cap{position:fixed;left:0;right:0;bottom:0;z-index:99999;pointer-events:none;
-      display:flex;justify-content:center;padding:0 0 40px;
-      font-family:"Geist",ui-sans-serif,system-ui,sans-serif;}
-    #__cap::before{content:"";position:absolute;left:0;right:0;bottom:0;height:210px;
-      background:linear-gradient(to top,rgba(4,4,9,.94),rgba(4,4,9,.72) 42%,transparent);
-      opacity:0;transition:opacity .4s ease;}
+      display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+      padding:0 0 62px;font-family:"Geist",ui-sans-serif,system-ui,sans-serif;}
+
+    /* The scrim is the container. Tall and soft, so there is no visible edge. */
+    #__cap::before{content:"";position:absolute;left:0;right:0;bottom:0;height:340px;
+      pointer-events:none;opacity:0;transition:opacity .5s cubic-bezier(.16,1,.3,1);
+      background:linear-gradient(to top,
+        rgba(3,3,8,.95) 0%, rgba(3,3,8,.86) 26%, rgba(3,3,8,.55) 56%, transparent 100%);}
     #__cap.on::before{opacity:1;}
+
     #__cap .__cap-in{
-      position:relative;max-width:60ch;margin:0;padding:15px 26px;text-align:center;
-      background:rgba(10,10,20,.86);border:1px solid rgba(76,201,255,.26);
-      border-radius:10px;backdrop-filter:blur(14px) saturate(160%);
-      box-shadow:0 18px 60px rgba(0,0,0,.7);
-      opacity:0;transform:translateY(10px);
-      transition:opacity .40s cubic-bezier(.16,1,.3,1),transform .40s cubic-bezier(.16,1,.3,1);}
+      position:relative;max-width:44ch;padding:0 32px;text-align:center;
+      opacity:0;transform:translateY(14px) scale(.994);
+      transition:opacity .46s cubic-bezier(.16,1,.3,1),transform .52s cubic-bezier(.16,1,.3,1);}
     #__cap.on .__cap-in{opacity:1;transform:none;}
-    #__cap .__cap-t{font-size:18px;line-height:1.5;letter-spacing:-.015em;color:#f2f5f8;
-      font-weight:450;}
-    #__cap.beat .__cap-in{border-color:rgba(45,212,167,.55);
-      box-shadow:0 0 0 1px rgba(45,212,167,.14),0 18px 70px rgba(0,0,0,.72);}
-    #__cap.beat .__cap-t{color:#2dd4a7;}
+
+    /* Type does the work: large, tight, and shadowed enough to survive any
+       background without a box around it. */
+    #__cap .__cap-t{
+      display:block;font-size:25px;line-height:1.42;letter-spacing:-.021em;
+      font-weight:500;color:#f7f9fc;
+      text-shadow:0 1px 2px rgba(0,0,0,.9), 0 3px 14px rgba(0,0,0,.75),
+                  0 0 42px rgba(0,0,0,.55);
+      text-wrap:balance;}
+
+    /* One rule under the line, drawn in the proof ramp. It widens on the beat
+       cue that closes each segment, so emphasis is motion rather than colour. */
+    #__cap .__cap-r{
+      display:block;height:2px;width:0;margin:20px auto 0;border-radius:2px;opacity:.85;
+      background:linear-gradient(90deg,#ff5c7c,#ff9557,#ffd166,#8ee06a,#2dd4a7);
+      transition:width .85s cubic-bezier(.16,1,.3,1);}
+    #__cap.on .__cap-r{width:74px;}
+    #__cap.on.beat .__cap-r{width:210px;}
+    #__cap.beat .__cap-t{color:#ffffff;}
   \`;
   document.head.appendChild(css);
   // Outside body: body carries the zoom transform, and a transformed ancestor
