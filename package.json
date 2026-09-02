@@ -21,7 +21,8 @@
     "film:music": "bash scripts/film-music.sh",
     "film:mix": "bash scripts/film-mix.sh",
     "film:facts": "tsx scripts/facts.ts",
-    "film:all": "bash scripts/make-film.sh"
+    "film:all": "bash scripts/make-film.sh",
+    "db:sync": "bash scripts/sync-hosted.sh"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",

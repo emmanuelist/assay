@@ -56,3 +56,5 @@ AGENTS.md
 # private competitive brief and review spec, kept local
 see.md
 check.md
+
+.env.vercel
