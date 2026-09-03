@@ -87,7 +87,7 @@ export const CARDS: Card[] = [
     secs: 5.5,
   },
   {
-    name: "08-close",
+    name: "09-close",
     mark: true,
     title: "Assay",
     subtitle:

@@ -18,7 +18,12 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
   // An agent Assay operates knows its own inputs; any other live agent can
   // still be called, just without a described form.
   const mine = AGENTS.find((a) => evidence.probes.some((p) => p.url.endsWith(`/api/agents/${a.slug}`)));
-  const callable = evidence.probes.find((p) => p.ok)?.url ?? null;
+  // For an agent Assay operates, call it same-origin. The probe record holds the
+  // absolute production URL, which makes a local run wait on a cold remote
+  // function — and it is the identical handler either way.
+  const callable = mine
+    ? `/api/agents/${mine.slug}`
+    : (evidence.probes.find((p) => p.ok)?.url ?? null);
   const hireInputs: HireInput[] = mine
     ? mine.inputs.map((i) => ({
         name: i.name, required: i.required, note: i.note,

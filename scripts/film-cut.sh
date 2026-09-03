@@ -12,6 +12,10 @@ XF="${FILM_XFADE:-0.5}"
 echo "Normalising segments"
 i=0
 : > "$OUT/list.txt"
+# Clear last run's normalised clips. The concat list is built by globbing
+# norm-*, so a run with fewer segments than the previous one silently
+# concatenated the leftovers — 66s of stale footage in one case.
+rm -f "$OUT"/norm-*.mp4
 for dir in "$OUT"/[0-9]*; do
   [ -d "$dir" ] || continue
   src=$(find "$dir" -name '*.webm' | head -1)

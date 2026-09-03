@@ -13,7 +13,7 @@
  *   npm run film              # needs `npm run serve -- --live --short` warm
  */
 import { chromium, type Page } from "playwright";
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, rmSync, readdirSync } from "node:fs";
 import { CUES, CAPTION_RUNTIME } from "./captions.js";
 import { MOVES, POINTER_RUNTIME, TRAVEL_MS, resolveMoves, type Move } from "./pointer.js";
 import { CARDS, cardHTML, type Card } from "./card.js";
@@ -167,8 +167,18 @@ async function main() {
   else console.log("No film/timing.json: using planned windows. Run npm run voice first.");
 
   mkdirSync(OUT, { recursive: true });
-  for (const name of [...Object.keys(CUES), ...CARDS.map((c) => c.name)])
-    rmSync(`${OUT}/${name}`, { recursive: true, force: true });
+  const wanted = new Set([...Object.keys(CUES), ...CARDS.map((c) => c.name)]);
+  for (const name of wanted) rmSync(`${OUT}/${name}`, { recursive: true, force: true });
+
+  // Drop segment directories that are no longer part of the film. Renumbering
+  // segments once left four orphans behind, and film-cut globs the directory —
+  // so 80 seconds of silent duplicate footage went into the cut unnoticed.
+  for (const entry of readdirSync(OUT, { withFileTypes: true })) {
+    if (!entry.isDirectory() || wanted.has(entry.name)) continue;
+    if (!/^\d\d-/.test(entry.name)) continue;
+    rmSync(`${OUT}/${entry.name}`, { recursive: true, force: true });
+    console.log(`  removed stale segment ${entry.name}`);
+  }
 
   /** Drive scroll directly. The page sets scroll-behavior:smooth for its nav
    *  anchors; left on, each per-frame scrollTo restarts the browser's easing
@@ -239,8 +249,16 @@ async function main() {
     await wait(800);
   });
 
-  // 5. The ledger, ranked by proof. 329k rows, duplicates collapsed.
-  await segment("05-ledger", windowFor("05-ledger", 26), async (p) => {
+  // 5. Activation. The cursor fills nothing and clicks the real button; the
+  //    agent reads the chain live and answers on camera.
+  await segment("05-activate", windowFor("05-activate", 30), async (p) => {
+    await p.goto(`${APP}/agent/331752`, { waitUntil: "domcontentloaded" });
+    await untilPainted(p, 900);
+    await wait(1200);
+  });
+
+  // 6. The ledger, ranked by proof. 329k rows, duplicates collapsed.
+  await segment("06-ledger", windowFor("06-ledger", 26), async (p) => {
     await p.goto(`${APP}/ledger`, { waitUntil: "domcontentloaded" });
     await untilPainted(p, 900);
     await scrollTo(p, "#ledger", 1400, -150);
@@ -248,16 +266,16 @@ async function main() {
     void (async () => { await wait(12000); await scrollTo(p, "#ledger", 2600, -520); })();
   });
 
-  // 6. The receipt: what the indexer actually did.
-  await segment("06-proof", windowFor("06-proof", 28), async (p) => {
+  // 7. The receipt: what the indexer actually did.
+  await segment("07-proof", windowFor("07-proof", 28), async (p) => {
     await p.goto(`${APP}/#method`, { waitUntil: "domcontentloaded" });
     await untilPainted(p, 900);
     await scrollTo(p, "#method", 900, -110);
     await wait(800);
   });
 
-  // 7. Limits, said out loud, over the claim it qualifies.
-  await segment("07-limits", windowFor("07-limits", 20), async (p) => {
+  // 8. Limits, said out loud, over the claim it qualifies.
+  await segment("08-limits", windowFor("08-limits", 20), async (p) => {
     await p.goto(APP, { waitUntil: "domcontentloaded" });
     await untilPainted(p, 900);
     await wait(1000);

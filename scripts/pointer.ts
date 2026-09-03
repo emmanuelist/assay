@@ -88,18 +88,23 @@ export const MOVES: Record<string, Move[]> = {
     { line: 3, lead: 0.3, sel: "#assay dl > div:nth-child(3) dd", label: "no session granted" },
     { line: 5, lead: 0.3, sel: "#assay dl > div:nth-child(4) dd" },
   ],
-  "05-ledger": [
+  "05-activate": [
+    { line: 0, lead: 1.0, sel: "#assay dl > div:nth-child(3) dd", label: "a real session" },
+    { line: 2, lead: 0.4, sel: "#assay dl > div:nth-child(3) dd", label: "cap, allowlist, expiry" },
+    { line: 3, lead: 0.8, sel: "#run-agent", label: "put it to work", click: true },
+  ],
+  "06-ledger": [
     { line: 0, lead: 1.0, sel: "#ledger tbody tr:nth-child(2) td:first-child", label: "four proof marks" },
     { line: 1, lead: 0.8, sel: "#ledger tbody tr:nth-child(2) td:nth-child(5)", label: "measured latency" },
     { line: 2, lead: 0.5, sel: "#ledger tbody tr:nth-child(4) td:first-child span:nth-child(3)",
       label: "authority: blank, every row" },
   ],
-  "06-proof": [
+  "07-proof": [
     { line: 1, lead: 0.6, sel: "#method .cell:first-child p", label: "token ids walked" },
     { line: 2, lead: 0.4, sel: "#method .cell:nth-child(4) p", label: "endpoints actually called" },
     { line: 3, lead: 0.4, sel: "#method .cell:nth-child(5) p" },
   ],
-  "07-limits": [
+  "08-limits": [
     { line: 1, lead: 0.5, sel: "h1" },
   ],
 };

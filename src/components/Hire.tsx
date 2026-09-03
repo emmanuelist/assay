@@ -95,6 +95,7 @@ export function Hire({
 
         <div className="flex items-center gap-3 flex-wrap">
           <button
+            id="run-agent"
             type="button"
             onClick={run}
             disabled={state === "running" || missing.length > 0}

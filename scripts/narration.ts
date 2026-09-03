@@ -57,17 +57,17 @@ export const NARRATION: Block[] = [
   },
   {
     segment: "03-categories",
-    secs: 24,
+    secs: 26,
     text:
-      `The four categories a marketplace needs are in there, but buried. ` +
-      `Rebalancing has ${d(F.categories.rebalancing.total)} agents in it. Health factor has ${d(F.categories.health.total)}. ` +
-      `Grid trading looks healthy until you count how few can actually be reached. ` +
-      `A category is what an agent says about itself. Only the proof was checked.`,
+      `A marketplace needs four categories. The registry has them, but thinly. ` +
+      `Rebalancing holds ${d(F.categories.rebalancing.total)} agents and ${d(F.categories.rebalancing.live)} of them answer. ` +
+      `Health factor holds ${d(F.categories.health.total)}. ` +
+      `So Assay built and registered one agent in each category itself, and they answer like any other.`,
     say:
-      `The four categories a marketplace needs are in there, but buried. ` +
-      `Rebalancing has ${s(F.categories.rebalancing.total)} agents in it. Health factor has ${s(F.categories.health.total)}. ` +
-      `Grid trading looks healthy until you count how few can actually be reached. ` +
-      `A category is what an agent says about itself. Only the proof was checked.`,
+      `A marketplace needs four categories. The registry has them, but thinly. ` +
+      `Rebalancing holds ${s(F.categories.rebalancing.total)} agents and ${s(F.categories.rebalancing.live)} of them answer. ` +
+      `Health factor holds ${s(F.categories.health.total)}. ` +
+      `So Assay built and registered one agent in each category itself, and they answer like any other.`,
   },
   {
     segment: "04-assay",
@@ -80,7 +80,16 @@ export const NARRATION: Block[] = [
       `Most agents leave most of it blank. That blank is not a loading state. It is the finding.`,
   },
   {
-    segment: "05-ledger",
+    segment: "05-activate",
+    secs: 34,
+    text:
+      `Authority is the row nothing on this registry could fill. ` +
+      `Not one agent runs under a permission you can read, cap, or take back. ` +
+      `Assay\u2019s own agents do. A spend cap, an allowlist of two contracts, an expiry. ` +
+      `And you can put one to work right here. It reads the chain and answers, inside that authority.`,
+  },
+  {
+    segment: "06-ledger",
     secs: 26,
     text:
       `Rank by what they can prove and the registry inverts. ` +
@@ -89,7 +98,7 @@ export const NARRATION: Block[] = [
       `Not one agent here runs under a session you could cap, expire, or revoke.`,
   },
   {
-    segment: "06-proof",
+    segment: "07-proof",
     secs: 28,
     text:
       `None of this is sampled, estimated, or mocked. ` +
@@ -105,12 +114,12 @@ export const NARRATION: Block[] = [
       `The figures on the page are row counts from that work, and you can re-run it against a public node with no key.`,
   },
   {
-    segment: "07-limits",
+    segment: "08-limits",
     secs: 20,
     text:
       `What this does not prove. ` +
       `Answering a call means an endpoint is up, not that the agent behind it is any good. ` +
-      `This is mainnet data, read only, and nothing here is audited. ` +
+      `This is mainnet data and nothing here is audited. Three of the four agents hold a session; the fourth is unfunded. ` +
       `An agent earns its place by what it can prove, not by the fact that it registered.`,
   },
 ];
