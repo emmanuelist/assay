@@ -22,7 +22,8 @@
     "film:mix": "bash scripts/film-mix.sh",
     "film:facts": "tsx scripts/facts.ts",
     "film:all": "bash scripts/make-film.sh",
-    "db:sync": "bash scripts/sync-hosted.sh"
+    "db:sync": "bash scripts/sync-hosted.sh",
+    "agents:register": "tsx scripts/register-agents.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
