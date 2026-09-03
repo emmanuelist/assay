@@ -18,7 +18,20 @@
  * already post-transform, so it lands correctly at any scale.
  */
 export type Move = {
-  at: number;
+  /** Absolute seconds into the segment. Ignored when `line` is set. */
+  at?: number;
+  /**
+   * Anchor to a SPOKEN SENTENCE instead of a clock time: the move fires when
+   * sentence `line` (0-indexed) begins, plus `lead` seconds.
+   *
+   * Absolute times were written against a planned narration and silently went
+   * wrong the moment the voice changed pace — the "one agent, this many times"
+   * label fired at 11.0s for a sentence actually spoken at 16.07s. Anchoring to
+   * the measured timing removes the whole class of drift.
+   */
+  line?: number;
+  /** Offset from the sentence start, in seconds. Negative arrives early. */
+  lead?: number;
   sel: string;
   label?: string;
   /** Fire a real click on `sel` once the cursor arrives. */
@@ -31,44 +44,63 @@ export type Move = {
 
 export const TRAVEL_MS = 1050;   // cursor travel; actions fire after this
 
+/**
+ * Resolve `line`-anchored moves against the measured narration, so the cursor
+ * lands on whatever is being said regardless of how fast the narrator reads.
+ */
+export function resolveMoves(
+  moves: Move[],
+  lines: { at: number; secs: number }[] | undefined,
+): (Move & { at: number })[] {
+  return moves
+    .map((m) => {
+      if (m.line === undefined) return { ...m, at: m.at ?? 0 };
+      const l = lines?.[m.line];
+      // Fall back to any absolute time when a segment has no measured timing yet.
+      if (!l) return { ...m, at: m.at ?? 0 };
+      return { ...m, at: Math.max(0, l.at + (m.lead ?? 0)) };
+    })
+    .sort((a, b) => a.at - b.at);
+}
+
 /** Per-project. Selectors are CSS in the page being filmed.
  *  No zoom here: the product is dense and legible at 1440x900, and pushing in
  *  on every beat reads as nausea. The cursor carries the attention instead. */
 export const MOVES: Record<string, Move[]> = {
   "01-claim": [
-    { at: 2.2, sel: "h1" },
-    { at: 9.0, sel: "#finding .cell:first-child p", label: "answered when called" },
-    { at: 15.5, sel: "#finding .cell:nth-child(2) p" },
+    { line: 0, lead: 1.2, sel: "h1" },
+    { line: 1, lead: 0.6, sel: "#finding .cell:nth-child(2) p", label: "registered" },
+    { line: 3, lead: 0.4, sel: "#finding .cell:first-child p", label: "answered when called" },
   ],
   "02-landfill": [
-    { at: 3.0, sel: "#finding .cell:nth-child(3) p", label: "after collapsing duplicates" },
-    { at: 11.0, sel: "#landfill li:first-child span", label: "one agent, this many times" },
-    { at: 18.0, sel: "#landfill li:nth-child(2)" },
+    { line: 1, lead: 0.5, sel: "#finding .cell:nth-child(3) p", label: "after collapsing duplicates" },
+    { line: 2, lead: 0.5, sel: "#landfill li:first-child span", label: "one agent, this many times" },
+    { line: 3, lead: 0.6, sel: "#landfill li:nth-child(2)" },
   ],
   "03-categories": [
-    { at: 2.5, sel: "#categories a:first-child p", label: "rebalancing" },
-    { at: 8.0, sel: "#categories a:nth-child(4) p", label: "health factor" },
-    { at: 14.0, sel: "#categories a:nth-child(2)", label: "open it", click: true },
+    { line: 1, lead: 0.3, sel: "#categories a:first-child p", label: "rebalancing" },
+    { line: 1, lead: 3.0, sel: "#categories a:nth-child(4) p", label: "health factor" },
+    { line: 2, lead: 0.5, sel: "#categories a:nth-child(2)", label: "open it", click: true },
   ],
   "04-assay": [
-    { at: 3.5, sel: "#assay dt:nth-of-type(1), #assay dl > div:nth-child(1) dt" },
-    { at: 9.0, sel: "#assay dl > div:nth-child(2) dd", label: "it answered" },
-    { at: 16.0, sel: "#assay dl > div:nth-child(3) dd", label: "no session granted" },
-    { at: 23.0, sel: "#assay dl > div:nth-child(4) dd" },
+    { line: 1, lead: 0.3, sel: "#assay dl > div:nth-child(1) dd" },
+    { line: 2, lead: 0.3, sel: "#assay dl > div:nth-child(2) dd", label: "it answered" },
+    { line: 3, lead: 0.3, sel: "#assay dl > div:nth-child(3) dd", label: "no session granted" },
+    { line: 5, lead: 0.3, sel: "#assay dl > div:nth-child(4) dd" },
   ],
   "05-ledger": [
-    { at: 3.0, sel: "#ledger tbody tr:nth-child(2) td:first-child", label: "four proof marks" },
-    { at: 10.0, sel: "#ledger tbody tr:nth-child(2) td:nth-child(5)", label: "measured latency" },
-    { at: 18.0, sel: "#ledger tbody tr:nth-child(4) td:first-child span:nth-child(3)",
+    { line: 0, lead: 1.0, sel: "#ledger tbody tr:nth-child(2) td:first-child", label: "four proof marks" },
+    { line: 1, lead: 0.8, sel: "#ledger tbody tr:nth-child(2) td:nth-child(5)", label: "measured latency" },
+    { line: 2, lead: 0.5, sel: "#ledger tbody tr:nth-child(4) td:first-child span:nth-child(3)",
       label: "authority: blank, every row" },
   ],
   "06-proof": [
-    { at: 4.0, sel: "#method .cell:first-child p", label: "token ids walked" },
-    { at: 12.0, sel: "#method .cell:nth-child(4) p", label: "endpoints actually called" },
-    { at: 20.0, sel: "#method .cell:nth-child(5) p" },
+    { line: 1, lead: 0.6, sel: "#method .cell:first-child p", label: "token ids walked" },
+    { line: 2, lead: 0.4, sel: "#method .cell:nth-child(4) p", label: "endpoints actually called" },
+    { line: 3, lead: 0.4, sel: "#method .cell:nth-child(5) p" },
   ],
   "07-limits": [
-    { at: 6.0, sel: "h1" },
+    { line: 1, lead: 0.5, sel: "h1" },
   ],
 };
 

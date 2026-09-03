@@ -15,10 +15,15 @@ while pgrep -f 'scripts/(resolve|probe|finalize)\.ts' >/dev/null; do
   echo "[film] indexing still running, waiting…"; sleep 60
 done
 
-echo "[film] 1/6 facts"     && npx tsx scripts/facts.ts
-echo "[film] 2/6 voice"     && npx tsx scripts/voice.ts   # ElevenLabs when a key is present, macOS say otherwise
-echo "[film] 3/6 film"      && npx tsx scripts/film.ts
-echo "[film] 4/6 cut"       && bash scripts/film-cut.sh
-echo "[film] 5/6 voice pad" && npx tsx scripts/voice.ts   # ElevenLabs when a key is present, macOS say otherwise
-echo "[film] 6/6 mix"       && bash scripts/film-mix.sh
+echo "[film] 1/7 facts"      && npx tsx scripts/facts.ts
+echo "[film] 2/7 voice"      && npx tsx scripts/voice.ts
+echo "[film] 3/7 film"       && npx tsx scripts/film.ts
+echo "[film] 4/7 cut"        && bash scripts/film-cut.sh
+echo "[film] 5/7 voice pad"  && npx tsx scripts/voice.ts
+# The padded pass REWRITES timing.json. Captions and pointer moves are burned
+# into the picture from those timings, so the picture has to be shot again
+# afterwards — otherwise the audio moves and the captions stay where they were,
+# which is exactly the desync this pass exists to remove.
+echo "[film] 6/7 re-film"    && npx tsx scripts/film.ts && bash scripts/film-cut.sh
+echo "[film] 7/7 mix"        && bash scripts/film-mix.sh
 echo "[film] COMPLETE"

@@ -15,7 +15,7 @@
 import { chromium, type Page } from "playwright";
 import { mkdirSync, rmSync } from "node:fs";
 import { CUES, CAPTION_RUNTIME } from "./captions.js";
-import { MOVES, POINTER_RUNTIME, TRAVEL_MS, type Move } from "./pointer.js";
+import { MOVES, POINTER_RUNTIME, TRAVEL_MS, resolveMoves, type Move } from "./pointer.js";
 import { CARDS, cardHTML, type Card } from "./card.js";
 import { readFileSync, existsSync } from "node:fs";
 
@@ -80,7 +80,7 @@ async function holdAfterSetup(name: string, startedAt: number, secs: number) {
  * Failures are logged and swallowed: a selector can vanish between planning and
  * filming, and losing one interaction is better than losing the segment.
  */
-function scheduleActions(page: Page, moves: Move[]): NodeJS.Timeout[] {
+function scheduleActions(page: Page, moves: (Move & { at: number })[]): NodeJS.Timeout[] {
   const timers: NodeJS.Timeout[] = [];
   for (const m of moves) {
     if (!m.click && m.type === undefined) continue;
@@ -107,7 +107,15 @@ async function captions(page: Page, name: string) {
       process.stdout.write(`  captions: ${cues.length} cues injected\n`);
     } catch (e) { process.stdout.write(`  captions FAILED: ${(e as Error).message.slice(0, 90)}\n`); }
   }
-  const moves = MOVES[name];
+  // Resolve sentence-anchored moves against the measured narration, so the
+  // cursor tracks what is actually being said rather than a planned schedule.
+  let measured: { at: number; secs: number }[] | undefined;
+  try {
+    const t = JSON.parse(readFileSync("film/timing.json", "utf8")) as
+      Record<string, { at: number; secs: number }[]>;
+    measured = t[name];
+  } catch { /* first run: fall back to absolute times */ }
+  const moves = MOVES[name] ? resolveMoves(MOVES[name]!, measured) : undefined;
   if (moves?.length) {
     try {
       await page.evaluate(POINTER_RUNTIME.replace("__MOVES__", JSON.stringify(moves)));
