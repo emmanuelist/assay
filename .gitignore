@@ -63,3 +63,5 @@ check.md
 .env.vercel
 
 agents.registered.json
+
+sessions.granted.json
