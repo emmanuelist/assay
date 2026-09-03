@@ -15,15 +15,19 @@ while pgrep -f 'scripts/(resolve|probe|finalize)\.ts' >/dev/null; do
   echo "[film] indexing still running, waiting…"; sleep 60
 done
 
-echo "[film] 1/7 facts"      && npx tsx scripts/facts.ts
-echo "[film] 2/7 voice"      && npx tsx scripts/voice.ts
-echo "[film] 3/7 film"       && npx tsx scripts/film.ts
-echo "[film] 4/7 cut"        && bash scripts/film-cut.sh
-echo "[film] 5/7 voice pad"  && npx tsx scripts/voice.ts
+echo "[film] 1/8 facts"      && npx tsx scripts/facts.ts
+echo "[film] 2/8 voice"      && npx tsx scripts/voice.ts
+echo "[film] 3/8 film"       && npx tsx scripts/film.ts
+echo "[film] 4/8 cut"        && bash scripts/film-cut.sh
+echo "[film] 5/8 voice pad"  && npx tsx scripts/voice.ts
 # The padded pass REWRITES timing.json. Captions and pointer moves are burned
 # into the picture from those timings, so the picture has to be shot again
 # afterwards — otherwise the audio moves and the captions stay where they were,
 # which is exactly the desync this pass exists to remove.
-echo "[film] 6/7 re-film"    && npx tsx scripts/film.ts && bash scripts/film-cut.sh
-echo "[film] 7/7 mix"        && bash scripts/film-mix.sh
+echo "[film] 6/8 re-film"    && npx tsx scripts/film.ts && bash scripts/film-cut.sh
+# Re-filming changes segment lengths again, so the voice has to be re-laid to
+# the FINAL manifest. Padding only inserts silence, so the picture is untouched
+# and the burned-in captions stay exactly where they were shot.
+echo "[film] 7/8 voice lock" && npx tsx scripts/voice.ts
+echo "[film] 8/8 mix"        && bash scripts/film-mix.sh
 echo "[film] COMPLETE"

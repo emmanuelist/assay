@@ -69,8 +69,9 @@ async function main() {
   }
   console.log(KEY ? "Voice: ElevenLabs" : "Voice: macOS say (no ELEVENLABS_API_KEY set)");
 
-  let cursor = 0;
   const parts: string[] = [];
+  /** Padded audio per narrated segment, assembled into picture order below. */
+  const block: Record<string, string> = {};
   // Sentence-level timings, so captions can be cut to what is ACTUALLY said
   // rather than to a words-per-second guess. Estimates drift within a segment
   // and the caption stops matching the voice.
@@ -124,8 +125,30 @@ async function main() {
     const padded = `${OUT}/${b.segment}-padded.mp3`;
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", f,
       "-af", `apad=whole_dur=${window.toFixed(3)}`, "-c:a", "libmp3lame", "-b:a", "192k", padded]);
-    parts.push(padded);
-    cursor += window;
+    block[b.segment] = padded;
+  }
+
+  // Lay the blocks out in PICTURE order, with silence standing in for every
+  // segment that has no narration.
+  //
+  // The old loop concatenated only the narrated blocks, so the title cards were
+  // missing from the track entirely: narration.mp3 came out 9.5s shorter than
+  // the film and every word landed 4.3s early — the length of the opening card
+  // — for the whole running time. Sentence positions inside each segment were
+  // correct, which is why it looked right in the manifest and wrong on screen.
+  const order = Object.keys(measured).length
+    ? Object.keys(measured).sort()
+    : NARRATION.map((b) => b.segment);
+  for (const seg of order) {
+    if (block[seg]) { parts.push(block[seg]!); continue; }
+    const secs = measured[seg];
+    if (!secs) continue;
+    const sil = `${OUT}/${seg}-silence.mp3`;
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error",
+      "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono", "-t", secs.toFixed(3),
+      "-c:a", "libmp3lame", "-b:a", "192k", sil]);
+    parts.push(sil);
+    console.log(`  ${seg.padEnd(16)} ${secs.toFixed(1)}s silence (no narration)`);
   }
 
   const list = `${OUT}/list.txt`;
@@ -133,9 +156,16 @@ async function main() {
   execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", list,
     "-c:a", "libmp3lame", "-b:a", "192k", "film/narration.mp3"]);
   writeFileSync("film/timing.json", JSON.stringify(timing, null, 2));
-  console.log(`\n  film/narration.mp3  (${dur("film/narration.mp3").toFixed(1)}s, target ${cursor.toFixed(1)}s)`);
+  // The target is the WHOLE picture now, cards included, not just the narrated part.
+  const target = Object.keys(measured).length
+    ? Object.values(measured).reduce((a, b) => a + b, 0)
+    : NARRATION.reduce((a, b) => a + b.secs, 0);
+  const got = dur("film/narration.mp3");
+  console.log(`\n  film/narration.mp3  (${got.toFixed(1)}s, target ${target.toFixed(1)}s)`);
+  if (Math.abs(got - target) > 0.75)
+    console.log(`  ! off by ${(got - target).toFixed(2)}s — the voice will drift against the picture`);
   console.log("  film/timing.json    sentence timings for the captions");
-  if (!existsSync("film/cleave-silent.mp4")) console.log("  (run npm run film && npm run film:cut, then npm run film:mix)");
+  if (!existsSync("film/assay-silent.mp4")) console.log("  (run npm run film && npm run film:cut, then npm run film:mix)");
 }
 
 main().catch((e) => { console.error("\nvoice failed:", e.message ?? e); process.exit(1); });
