@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Assay } from "@/components/Assay";
 import { getAgent, agentEvidence, agentSession } from "@/lib/db/queries";
+import { Hire, type HireInput } from "@/components/Hire";
+import { AGENTS } from "@/lib/agents/definitions";
 
 export default async function AgentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -12,6 +14,17 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
     getAgent(agentId), agentEvidence(agentId), agentSession(agentId),
   ]);
   if (!agent) notFound();
+
+  // An agent Assay operates knows its own inputs; any other live agent can
+  // still be called, just without a described form.
+  const mine = AGENTS.find((a) => evidence.probes.some((p) => p.url.endsWith(`/api/agents/${a.slug}`)));
+  const callable = evidence.probes.find((p) => p.ok)?.url ?? null;
+  const hireInputs: HireInput[] = mine
+    ? mine.inputs.map((i) => ({
+        name: i.name, required: i.required, note: i.note,
+        placeholder: i.name === "pool" ? "0x36696169…" : i.name === "account" ? "0x…" : "",
+      }))
+    : [];
 
   return (
     <main className="min-h-screen pt-20">
@@ -31,6 +44,9 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
           </div>
 
           <div className="space-y-8 min-w-0">
+            {callable && (
+              <Hire endpoint={callable} inputs={hireInputs} session={session} />
+            )}
             <section>
               <h2 className="text-[16px] font-semibold tracking-[-0.02em] border-b border-line-strong pb-2.5">
                 Where this came from
