@@ -17,6 +17,9 @@ const arg = (f: string) => { const i = process.argv.indexOf(f); return i > -1 ? 
 const LIMIT = Number(arg("--limit") ?? 0);
 const PER_HOST = Number(arg("--per-host") ?? 4);
 const STALE_HOURS = Number(arg("--stale-hours") ?? 6);
+/** Probe only these agents. Without it a targeted re-probe would have to walk
+ *  the whole endpoint table in id order to reach a handful of new agents. */
+const ONLY = (arg("--agents") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 const TIMEOUT_MS = 8_000;
 
 interface Target { id: number; agentId: bigint; url: string }
@@ -56,8 +59,11 @@ async function main() {
       select checked_at from probes p where p.endpoint_id = e.id
       order by checked_at desc limit 1
     ) last on true
-    where last.checked_at is null
-       or last.checked_at < now() - ${`${STALE_HOURS} hours`}::interval
+    where (
+      last.checked_at is null
+      or last.checked_at < now() - ${`${STALE_HOURS} hours`}::interval
+    )
+    ${ONLY.length ? sql`and e.agent_id in (${sql.join(ONLY.map((i) => sql`${BigInt(i)}`), sql`, `)})` : sql``}
     order by e.id
     ${LIMIT > 0 ? sql`limit ${LIMIT}` : sql``}
   `);

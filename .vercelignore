@@ -1,4 +1,7 @@
 # Nothing here is needed to build or serve the app.
+# .git alone was 62MB of the 122MB archive — binary churn from re-committing
+# the demo video — and the build never reads it.
+.git/
 film/
 recon/
 .playwright-mcp/

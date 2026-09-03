@@ -31,7 +31,7 @@ export const AGENTS: AgentDef[] = [
     category: "rebalancing",
     name: "Assay Range",
     description:
-      "Reports whether a PancakeSwap V3 liquidity position is still inside its range, and how far the pool has drifted from it.",
+      "Watches a PancakeSwap V3 LP range and reports when a position has drifted out of it and needs rebalancing, with the distance travelled.",
     does: "Reads the pool's live tick and compares it to the position's bounds.",
     inputs: [
       { name: "pool", required: true, note: "PancakeSwap V3 pool address on BSC" },

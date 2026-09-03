@@ -106,7 +106,18 @@ export async function GET(
     // health
     const account = q.get("account");
     if (!isAddress(account)) {
-      return json({ error: "account is required and must be a 0x address", example: "?account=0x…" }, 400);
+      // A bare GET is a discovery call, not a mistake. Answering it with 400
+      // makes the agent look dead to any generic liveness check — which is
+      // exactly what Assay would then report about it, correctly.
+      const block = await chain.getBlockNumber();
+      return json({
+        agent: def.name, category: def.category, at, block: block.toString(),
+        ready: true,
+        needs: { account: "borrower address on BSC, as ?account=0x…" },
+        verdict:
+          "Alive and reading Venus. Supply a borrower address to get a liquidation assessment.",
+        source: "Venus Comptroller getAccountLiquidity(), read live",
+      });
     }
     const [liq, block] = await Promise.all([
       chain.readContract({
