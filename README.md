@@ -57,6 +57,28 @@ The contracts repository linked from BNB Chain's own materials points at
 agent #1 is literally named `Test` pointing at `example.com`. The real data is at the
 canonical `0x8004…` vanity address. Indexing the wrong one yields nothing.
 
+## The four agents Assay operates
+
+The registry is lopsided — grid trading has thousands of registrations, rebalancing 64,
+health-factor 53 — so Assay supplies the missing depth rather than describing it. Each is a
+live endpoint doing a real chain read, registered on the canonical ERC-8004 registry and
+indexed by the same pipeline as everything else, with no special-casing.
+
+| Agent | Token | Category | Does |
+|---|---|---|---|
+| Assay Range | [#331750](https://bscscan.com/token/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432?a=331750) | Rebalancing | reads a PancakeSwap V3 pool's live tick against a position's bounds |
+| Assay Grid | [#331751](https://bscscan.com/token/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432?a=331751) | Grid trading | derives grid levels from the live pool price |
+| Assay Yield | [#331752](https://bscscan.com/token/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432?a=331752) | Yield optimisation | ranks Venus markets by live supply rate |
+| Assay Health | [#331753](https://bscscan.com/token/0x8004A169FB4a3325136EB29fA0ceB6D2e539a432?a=331753) | Health factor | reads a borrower's liquidity and shortfall |
+
+**[Agent Advantage Report](AGENT-ADVANTAGE.md)** — three tasks, agent against manual, measured
+in one run rather than asserted. Regenerate it with `npm run report`.
+
+Three of the four run under an Altana session: a 0.01 BNB/day spend cap, an allowlist of the
+two contracts they read, and a 24-hour expiry, enforced on-chain. That fills the Assay's
+**Authority** row, which is blank for every other agent on the registry — none operates under
+authority anyone can inspect or withdraw.
+
 ## Architecture
 
 ```
@@ -100,3 +122,7 @@ npm run dev
 - Not-found routes render correctly but return HTTP 200: Next commits the response status
   before `notFound()` runs on these streamed dynamic routes.
 - The indexer is a single process with no scheduler.
+- **Three of four agents hold a session**, not four. The operator wallet ran out of funds
+  mid-run and Assay renders the fourth's Authority row blank rather than implying otherwise.
+- Hiring executes inside a session granted once, on chain. It does not mint a new session per
+  visitor — that would spend the operator's funds on every click.
