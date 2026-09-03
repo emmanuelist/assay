@@ -89,3 +89,33 @@ export const indexState = pgTable("index_state", {
 export type Agent = typeof agents.$inferSelect;
 export type Endpoint = typeof endpoints.$inferSelect;
 export type Probe = typeof probes.$inferSelect;
+
+/**
+ * An Altana session: the authority an agent operates under.
+ *
+ * This is the Assay's Authority row. Every agent on the ERC-8004 registry
+ * leaves it blank — none runs under authority anyone can inspect or withdraw —
+ * so a row here is the exception, not the norm.
+ */
+export const sessions = pgTable(
+  "sessions",
+  {
+    agentId: bigint("agent_id", { mode: "bigint" }).primaryKey(),
+    chainId: integer("chain_id").notNull(),
+    walletAddress: text("wallet_address").notNull(),
+    publicKey: text("public_key").notNull(),
+    /** Unix seconds. A session past this is expired, not revoked. */
+    expiry: integer("expiry").notNull(),
+    spendCapWei: text("spend_cap_wei"),
+    spendPeriod: text("spend_period"),
+    /** Contracts this session may call. Empty means unrestricted. */
+    allowlist: jsonb("allowlist").$type<{ label: string; to: string }[]>(),
+    grantedAt: timestamp("granted_at", { withTimezone: true }).notNull().defaultNow(),
+    grantTx: text("grant_tx"),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    revokeTx: text("revoke_tx"),
+  },
+  (t) => [index("sessions_expiry_idx").on(t.expiry)],
+);
+
+export type Session = typeof sessions.$inferSelect;

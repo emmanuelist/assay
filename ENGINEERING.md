@@ -45,6 +45,20 @@ recon/               reproducible on-chain evidence (python, no deps)
   log-based backfill. Enumerate via **Multicall3 `aggregate3`** — batches of ~250 work in
   ~5s; JSON-RPC array batching caps at 10 and is useless here.
 
+## Traps
+
+- **`drizzle-kit push` drops what it does not manage.** `cluster_sizes` and
+  `latest_probe_mv` are created by `scripts/finalize.ts`, not by the drizzle
+  schema, so a push silently removed both and every data route fell back to its
+  loading state. Re-run `npm run index:finalize` after any push.
+- **Altana bills per operation through its relay, far above raw gas.** Measured
+  at ~0.0008 BNB per session grant while the underlying transaction cost
+  0.000008. Estimating from gas alone was wrong by ~40x.
+- **`grantSession` without a `sessionSigner` generates an ephemeral key.** It
+  lives only in that process's memory and a serialized session is "everything
+  except the secret", so the grant becomes permanently unusable once the process
+  exits. Always pass your own persisted key.
+
 ## Rules
 
 1. **No mocks, no fake data, no demo mode.** Every rendered value comes from the chain, the

@@ -1,4 +1,4 @@
-import type { AgentSummary, Liveness } from "@/lib/db/queries";
+import type { AgentSession, AgentSummary, Liveness } from "@/lib/db/queries";
 import { BAND_CLASS, BAND_NOTE, bandFor } from "@/lib/latency";
 
 /**
@@ -59,7 +59,36 @@ interface Row {
   value: React.ReactNode;
 }
 
-export function Assay({ agent }: { agent: AgentSummary }) {
+function AuthorityValue({ session }: { session: AgentSession }) {
+  if (session.revokedAt) {
+    return (
+      <span className="text-refuted">
+        revoked{" "}
+        <span className="text-fg-faint">
+          {new Date(session.revokedAt).toISOString().slice(0, 16).replace("T", " ")}
+        </span>
+      </span>
+    );
+  }
+  if (session.expired) {
+    return <span className="text-refuted">session expired</span>;
+  }
+  const cap = session.spendCapWei ? Number(session.spendCapWei) / 1e18 : null;
+  return (
+    <span className="text-proven">
+      {cap !== null ? `${cap} BNB/${session.spendPeriod ?? "day"} cap` : "capped"}
+      <span className="text-fg-faint">
+        {" · "}
+        {session.allowlist.length
+          ? `${session.allowlist.length} contract${session.allowlist.length === 1 ? "" : "s"} allowed`
+          : "unrestricted"}
+        {` · expires in ${session.expiresInHours}h`}
+      </span>
+    </span>
+  );
+}
+
+export function Assay({ agent, session }: { agent: AgentSummary; session?: AgentSession | null }) {
   const rows: Row[] = [
     {
       label: "Identity",
@@ -83,9 +112,9 @@ export function Assay({ agent }: { agent: AgentSummary }) {
     {
       label: "Authority",
       question: "What may it spend, and can you stop it?",
-      // Phase 4. Rendered as honestly absent rather than hidden — an agent with
-      // no revocable session is precisely what this product warns about.
-      value: <BlankRow note="no session granted" />,
+      // An agent with no revocable session is precisely what this product
+      // warns about, so absence stays visible rather than hidden.
+      value: session ? <AuthorityValue session={session} /> : <BlankRow note="no session granted" />,
     },
     {
       label: "Work",

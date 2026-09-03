@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Assay } from "@/components/Assay";
-import { getAgent, agentEvidence } from "@/lib/db/queries";
+import { getAgent, agentEvidence, agentSession } from "@/lib/db/queries";
 
 export default async function AgentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^\d+$/.test(id)) notFound();
 
   const agentId = BigInt(id);
-  const [agent, evidence] = await Promise.all([getAgent(agentId), agentEvidence(agentId)]);
+  const [agent, evidence, session] = await Promise.all([
+    getAgent(agentId), agentEvidence(agentId), agentSession(agentId),
+  ]);
   if (!agent) notFound();
 
   return (
@@ -25,7 +27,7 @@ export default async function AgentPage({ params }: { params: Promise<{ id: stri
 
         <div className="grid lg:grid-cols-[minmax(0,23rem)_1fr] gap-6 lg:gap-10 items-start">
           <div className="lg:sticky lg:top-8">
-            <Assay agent={agent} />
+            <Assay agent={agent} session={session} />
           </div>
 
           <div className="space-y-8 min-w-0">

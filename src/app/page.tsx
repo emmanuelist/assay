@@ -3,7 +3,7 @@ import { Assay } from "@/components/Assay";
 import { Proportion, type Band } from "@/components/Proportion";
 import { Stat } from "@/components/Stat";
 import {
-  biggestClusters, categoryCounts, featuredAgent, methodCounts, registryStats,
+  agentSession, biggestClusters, categoryCounts, featuredAgent, methodCounts, registryStats,
 } from "@/lib/db/queries";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +23,8 @@ export default async function Home() {
     { n: stats.distinct, label: "Distinct after collapsing duplicates", tone: "refuted" },
     { n: stats.live, label: "Answered when called", tone: "proven" },
   ];
+  // Show the worked example under real authority when it has any.
+  const featuredSession = featured ? await agentSession(featured.id) : null;
   const biggest = clusters[0];
 
   return (
@@ -193,7 +195,7 @@ export default async function Home() {
           </p>
 
           <div className="mt-9 grid lg:grid-cols-[minmax(0,23rem)_1fr] gap-6 lg:gap-10 items-start">
-            {featured ? <Assay agent={featured} /> : (
+            {featured ? <Assay agent={featured} session={featuredSession} /> : (
               <p className="text-[13px] text-fg-muted">No live agent indexed yet.</p>
             )}
 

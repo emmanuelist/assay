@@ -65,3 +65,5 @@ check.md
 agents.registered.json
 
 sessions.granted.json
+
+sessions.keys.json

@@ -354,3 +354,55 @@ export async function agentsInCategory(
     clientCount: r.client_count, liveness: toLiveness(r),
   }));
 }
+
+export interface AgentSession {
+  chainId: number;
+  walletAddress: string;
+  publicKey: string;
+  /** Unix seconds. */
+  expiry: number;
+  spendCapWei: string | null;
+  spendPeriod: string | null;
+  allowlist: { label: string; to: string }[];
+  revokedAt: Date | null;
+  revokeTx: string | null;
+  /** Derived here, not in render: a component calling Date.now() is impure. */
+  expired: boolean;
+  expiresInHours: number;
+}
+
+/**
+ * The authority an agent operates under, or null.
+ *
+ * Null is the overwhelmingly common answer: no agent on the registry other than
+ * Assay's own has a session anyone can inspect or withdraw.
+ */
+export async function agentSession(id: bigint): Promise<AgentSession | null> {
+  const [r] = await db.execute<{
+    chain_id: number; wallet_address: string; public_key: string; expiry: number;
+    spend_cap_wei: string | null; spend_period: string | null;
+    allowlist: { label: string; to: string }[] | null;
+    revoked_at: Date | null; revoke_tx: string | null;
+  }>(sql`
+    select chain_id, wallet_address, public_key, expiry, spend_cap_wei,
+           spend_period, allowlist, revoked_at, revoke_tx
+    from sessions where agent_id = ${id}
+  `);
+  if (!r) return null;
+  const now = Math.floor(Date.now() / 1000);
+  return {
+    chainId: r.chain_id, walletAddress: r.wallet_address, publicKey: r.public_key,
+    expiry: r.expiry, spendCapWei: r.spend_cap_wei, spendPeriod: r.spend_period,
+    allowlist: r.allowlist ?? [], revokedAt: r.revoked_at, revokeTx: r.revoke_tx,
+    expired: r.expiry <= now,
+    expiresInHours: Math.max(0, Math.round((r.expiry - now) / 3600)),
+  };
+}
+
+/** How many agents on the whole registry operate under a visible session. */
+export async function sessionCount(): Promise<number> {
+  const [r] = await db.execute<{ n: string }>(sql`
+    select count(*) as n from sessions where revoked_at is null
+  `);
+  return Number(r?.n ?? 0);
+}
