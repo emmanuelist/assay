@@ -52,13 +52,31 @@ export default async function Home() {
               Open the ledger
             </Link>
             <Link
-              href="#method"
+              href="#demo"
               className="rounded-full border border-line-strong px-5 py-2.5 text-[14px]
                          text-fg-secondary hover:text-fg hover:bg-surface-hover transition-colors"
             >
-              How we measured it
+              Watch the 3-minute demo
             </Link>
           </div>
+        </section>
+
+        {/* ── The demo ───────────────────────────────────────────── */}
+        <section id="demo" className="mb-4 scroll-mt-24">
+          <div className="overflow-hidden rounded-xl border border-line bg-surface">
+            <video
+              className="block w-full"
+              src="/assay-demo.mp4"
+              poster="/assay-poster.jpg"
+              controls
+              preload="none"
+              playsInline
+            />
+          </div>
+          <p className="mt-3 text-[12.5px] text-fg-faint">
+            Three minutes, filmed against this deployment. Every figure on screen is read
+            live from the registry — nothing in it is a mockup.
+          </p>
         </section>
 
         {/* ── Bento: the finding ─────────────────────────────────── */}

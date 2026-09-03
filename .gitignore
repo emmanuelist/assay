@@ -45,6 +45,9 @@ next-env.d.ts
 .playwright-mcp/
 /*.png
 film/
+# the delivered demo ships with the site
+!public/assay-demo.mp4
+!public/assay-poster.jpg
 
 # python bytecode and regenerable recon output
 __pycache__/

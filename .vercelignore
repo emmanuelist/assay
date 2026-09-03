@@ -6,4 +6,8 @@ recon/
 *.mp4
 *.mp3
 *.wav
+
+# the demo video ships with the site
+!public/assay-demo.mp4
+!public/assay-poster.jpg
 docker-compose.yml

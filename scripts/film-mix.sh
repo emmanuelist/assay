@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Delivery encode, not a stream copy. The filmed segments are yuv444p, which a
+# lot of players and platforms refuse outright, and the voice track was 96kHz
+# mono. Re-encode to yuv420p high profile and 48kHz stereo, faststart so it
+# begins playing before the whole file lands.
 # Final mix: picture + narration + bed.
 #
 # The bed is ducked under the voice by a sidechain compressor keyed off the
@@ -25,7 +29,10 @@ ffmpeg -y -loglevel error -i "$V" -i "$N" -i "$M" \
     [bedraw][key]sidechaincompress=threshold=0.09:ratio=3.2:attack=25:release=520:makeup=1[bed]; \
     [voice][bed]amix=inputs=2:normalize=0:weights=1 0.85,\
          loudnorm=I=-15:TP=-1.5:LRA=11[a]" \
-  -map 0:v -map "[a]" -shortest -c:v copy -c:a aac -b:a 192k film/assay-demo.mp4
+  -map 0:v -map "[a]" -shortest \
+  -c:v libx264 -profile:v high -pix_fmt yuv420p -crf 19 -preset slow \
+  -c:a aac -b:a 192k -ar 48000 -ac 2 \
+  -movflags +faststart film/assay-demo.mp4
 
 d=$(ffprobe -v error -show_entries format=duration -of csv=p=0 film/assay-demo.mp4)
 printf "\n  film/assay-demo.mp4  (%.0f:%02.0f)\n" "$(echo "$d/60" | bc)" "$(echo "$d%60" | bc)"

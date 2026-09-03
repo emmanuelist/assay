@@ -13,10 +13,9 @@
  *   npm run film              # needs `npm run serve -- --live --short` warm
  */
 import { chromium, type Page } from "playwright";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync } from "node:fs";
 import { CUES, CAPTION_RUNTIME } from "./captions.js";
 import { MOVES, POINTER_RUNTIME, TRAVEL_MS, type Move } from "./pointer.js";
-import { NARRATION } from "./narration.js";
 import { CARDS, cardHTML, type Card } from "./card.js";
 import { readFileSync, existsSync } from "node:fs";
 
@@ -38,7 +37,6 @@ function windowFor(segment: string, planned: number): number {
 
 const APP_DEFAULT = "http://localhost:3000";
 const APP = process.env.APP_URL ?? APP_DEFAULT;
-const SITE = process.env.SITE_URL ?? APP_DEFAULT;
 const OUT = "film";
 const W = 1440, H = 900;
 

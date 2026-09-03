@@ -15,7 +15,6 @@ import { readFileSync } from "node:fs";
 
 export type Cue = { at: number; secs: number; text: string; kind?: "beat" | "note" };
 
-const WPS = 2.6;            // calm delivery
 const LEAD = 0.35;          // captions land a beat before the voice
 
 /** Sentences, kept whole. A caption split mid-clause is unreadable at speed. */

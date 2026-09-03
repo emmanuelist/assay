@@ -16,9 +16,9 @@ while pgrep -f 'scripts/(resolve|probe|finalize)\.ts' >/dev/null; do
 done
 
 echo "[film] 1/6 facts"     && npx tsx scripts/facts.ts
-echo "[film] 2/6 voice"     && ELEVENLABS_API_KEY="" SAY_VOICE=Daniel npx tsx scripts/voice.ts
+echo "[film] 2/6 voice"     && npx tsx scripts/voice.ts   # ElevenLabs when a key is present, macOS say otherwise
 echo "[film] 3/6 film"      && npx tsx scripts/film.ts
 echo "[film] 4/6 cut"       && bash scripts/film-cut.sh
-echo "[film] 5/6 voice pad" && ELEVENLABS_API_KEY="" SAY_VOICE=Daniel npx tsx scripts/voice.ts
+echo "[film] 5/6 voice pad" && npx tsx scripts/voice.ts   # ElevenLabs when a key is present, macOS say otherwise
 echo "[film] 6/6 mix"       && bash scripts/film-mix.sh
 echo "[film] COMPLETE"
